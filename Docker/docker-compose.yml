@@ -1,0 +1,40 @@
+version: '2'
+
+services:
+  mariadb:
+    image: docker.io/bitnami/mariadb:10.6
+    restart: always
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_USER=admin
+      - MARIADB_DATABASE=adorei
+      - MARIADB_PASSWORD=root
+    #  - MARIADB_ROOT_PASSWORD=root
+    #  - MARIADB_ALLOW_EMPTY_PASSWOR=root
+
+  phpmyadmin:
+    image: phpmyadmin
+    ports:
+      - 8012:80
+    environment:
+      - PMA_ARBITRARY=1
+
+
+  myapp:
+    tty: true
+    build:
+      context: ./php
+    environment:
+      - DB_HOST=mariadb
+      - DB_USERNAME=admin
+      - DB_DATABASE=adorei
+      - DB_PASSWORD=root
+    depends_on:
+      - mariadb
+    ports:
+      - 8812:80
+    volumes:
+      - ../:/var/www
+      -  ./apache/default.conf:/etc/apache2/sites-enabled/000-default.conf
+    privileged: true # Privileged mode could be required to run this container under Windows
